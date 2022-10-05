@@ -2,10 +2,13 @@ library(shiny)
 library(shinyWidgets)
 library(readr)
 library(dplyr)
+library(stringr)
 
 df <- read_csv("Airbnb_Open_Data.csv")
 df <- df[1:25]
 df <- na.omit(df)
+df$price <- str_sub(df$price,2,-1)
+df$price <- as.numeric(gsub(",", "", df$price))
 
 
 # Define UI for application that draws a histogram
@@ -31,7 +34,31 @@ shinyUI(fluidPage(
                                   selected = character(0)
                                 ),
                                 selectInput("inReview","Select review rate: ",c("Todos",sort(unique(df$`review rate number`))))
-                         )
+                         ),
+                         column(3,
+                                selectInput("inHostName","Select host name: ",c("Todos",unique(df$`host name`))),
+                                selectInput("inNeighbourHood","Select neighbourhood group: ",c("Todos",unique(df$`neighbourhood group`)))
+                         ),
+                         column(4,
+                                checkboxGroupInput('chkbox_group_input',
+                                                   'Select room type:',
+                                                   choices = unique(df$`room type`),
+                                                   selected = NULL,inline = TRUE),
+                                br(),
+                                sliderInput('inPrice','Select price:',
+                                            value = c(min(df$price),max(df$price)),
+                                            min = min(df$price), 
+                                            max=max(df$price),
+                                            step = 1,
+                                            pre = '$',
+                                            sep = ',' )
+                                
+                         ),
+                         column(2,
+                                numericInput("inAvil","Availability 365:",
+                                             value = 0, step = 1 )
+                                
+                         ),
                        ),
                       fluidRow(
                         div(DT::dataTableOutput("tabla")),
