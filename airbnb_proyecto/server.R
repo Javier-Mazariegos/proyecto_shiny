@@ -1,6 +1,8 @@
 library(shiny)
 library(dplyr)
 library(ggplot2)
+library(plotly)
+library(gapminder)
 
 df <- read_csv("Airbnb_Open_Data.csv")
 df <- df[1:25]
@@ -41,7 +43,7 @@ shinyServer(function(input, output) {
             tabla <- tabla 
           }
           else{
-            tabla <- tabla %>% filter(`host name` %in% input$inNeighbourHood) 
+            tabla <- tabla %>% filter(`neighbourhood group` %in% input$inNeighbourHood) 
           }
         }
         if(!is.null(input$chkbox_group_input)){
@@ -57,6 +59,19 @@ shinyServer(function(input, output) {
          
         tabla <- tabla %>% select(NAME,`review rate number`,host_identity_verified,`host name`,`neighbourhood group`,`room type`,price,`availability 365`) %>%
         DT::datatable(options = list(searching=FALSE,bLengthChange =FALSE))
+    })
+    
+    output$plotGrafica <- renderPlotly({
+        if(input$inGrafica == "Cantidad ubicaciones vs precio promedio"){
+          p <- df %>% select(`minimum nights`,price) %>% group_by(`minimum nights`) %>% summarise(precio_promedio = mean(price)) %>% filter(`minimum nights`>0)
+          p$precio_promedio <-as.double(p$precio_promedio)
+          p <- p %>%
+            ggplot( aes(`minimum nights`, precio_promedio, color=precio_promedio)) +
+            geom_point() +
+            theme_bw()
+          ggplotly(p)
+        }
+      
     })
 
 })

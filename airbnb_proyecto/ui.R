@@ -3,6 +3,9 @@ library(shinyWidgets)
 library(readr)
 library(dplyr)
 library(stringr)
+library(ggplot2)
+library(plotly)
+library(gapminder)
 
 df <- read_csv("Airbnb_Open_Data.csv")
 df <- df[1:25]
@@ -66,7 +69,18 @@ shinyUI(fluidPage(
                       )
                )
       ),
-      tabPanel("Graficas", verbatimTextOutput("summary")),
+      tabPanel("Graficas", icon = icon("chart-area"), value = "trend", 
+        
+        sidebarPanel(width=4 ,
+            
+            selectInput("inGrafica","Seleccione el tipo de grafica: ",c("Elegir...","Cantidad ubicaciones vs precio promedio"))
+          
+        ),
+        mainPanel(width = 8,
+                  plotlyOutput("plotGrafica") 
+        )
+               
+      ),
       tabPanel("Mapas", tableOutput("table"))
     )
   )
