@@ -1,4 +1,5 @@
 library(shiny)
+library(shinyjs)
 library(shinyWidgets)
 library(readr)
 library(dplyr)
@@ -72,8 +73,9 @@ shinyUI(fluidPage(
       tabPanel("Graficas", icon = icon("chart-area"), value = "trend", 
         
         sidebarPanel(width=4 ,
-            
-            selectInput("inGrafica","Seleccione el tipo de grafica: ",c("Elegir...","Cantidad ubicaciones vs precio promedio"))
+            useShinyjs(),
+            selectInput("inGrafica","Seleccione el tipo de grafica: ",c("Elegir...","Cantidad ubicaciones vs precio promedio","Calidad Precio","Casas con mejores reviews","Verificados vs No verificados","Cantidad de casas por vecindario")),
+            numericInput("inGraficaNumerico","Availability 365:", value = 3, step = 1 )
           
         ),
         mainPanel(width = 8,
@@ -81,12 +83,66 @@ shinyUI(fluidPage(
         )
                
       ),
-      tabPanel("Mapas", tableOutput("table"))
+      tabPanel("Mapas", tableOutput("table")),
+
+      tabPanel("Casa URL", icon = icon("home"), value = "home",
+               useShinyjs(),
+               mainPanel(id="Casa URL",
+                 width = 12, style="margin-left:0.5%; margin-right:0.5%",
+                 fluidRow(
+                   column(4,
+                          div(style = "height:70vh; display: flex; align-items: center; justify-content: center;",
+                              htmlOutput("picture"))
+                   ),
+                   column(4,
+                          div(style = "height:80vh; padding-top: 45px;",
+                              p("id", style = "font-weight: bold; color: black;"),
+                              textOutput("id_text"),
+                              p("Nombre de la casa", style = "font-weight: bold; color: black;"),
+                              textOutput("nombreC_text"),
+                              p("Verificacion", style = "font-weight: bold; color: black;"),
+                              textOutput("Verificacion_text"),
+                              p("Nombre del anfitrion", style = "font-weight: bold; color: black;"),
+                              textOutput("nombreA_text"),
+                              p("Grupo de vecino", style = "font-weight: bold; color: black;"),
+                              textOutput("grupoV_text"),
+                              p("Vecindario", style = "font-weight: bold; color: black;"),
+                              textOutput("vecindario_text"),
+                              p("Pais", style = "font-weight: bold; color: black;"),
+                              textOutput("pais_text"),
+                              )
+                   ),
+                   column(4,
+                          div(style = "height:80vh; padding-top: 45px;",
+                              p("Reserva instantanea", style = "font-weight: bold; color: black;"),
+                              textOutput("reserva_text"),
+                              p("Politica de cancelacion", style = "font-weight: bold; color: black;"),
+                              textOutput("politica_text"),
+                              p("Tipo de habitacion", style = "font-weight: bold; color: black;"),
+                              textOutput("tipoA_text"),
+                              p("Año de construccion", style = "font-weight: bold; color: black;"),
+                              textOutput("Aconstruccion_text"),
+                              p("Precio", style = "font-weight: bold; color: black;"),
+                              textOutput("precio_text"),
+                              p("Tarifa de servicio", style = "font-weight: bold; color: black;"),
+                              textOutput("tarifa_text"),
+                              p("Minimo de noches", style = "font-weight: bold; color: black;"),
+                              textOutput("min_text"),
+                              p("Review", style = "font-weight: bold; color: black;"),
+                              textOutput("review_text"))
+                   )
+                ),
+                 fluidRow(
+                   column(12,
+                          div(style = "height:10vh;",
+                              p("Reglas", style = "font-weight: bold; color: black;"),
+                              textOutput("reglas_text"))
+                   )
+               )
+            
+          )
+        ) 
+      )
     )
   )
-  
-  
-  
-)
-
 )
