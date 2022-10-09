@@ -7,6 +7,19 @@ library(stringr)
 library(ggplot2)
 library(plotly)
 library(gapminder)
+library(leaflet)
+library(RColorBrewer)
+library(scales)
+library(lattice)
+library(dplyr)
+
+vars <- c(
+  "Price" = "price",
+  "Minimum nights" = "minimum nights",
+  "Review rate number" = "review rate number",
+  "Number of reviews" = "number of reviews",
+  "Availability 365" = "availability 365"
+)
 
 df <- read_csv("Airbnb_Open_Data.csv")
 df <- df[1:25]
@@ -83,7 +96,31 @@ shinyUI(fluidPage(
         )
                
       ),
-      tabPanel("Mapas", tableOutput("table")),
+      tabPanel("Mapas", 
+               div(class="outer",
+                   
+                   tags$head(
+                     
+                     includeCSS("styles.css"),
+                     includeScript("gomap.js")
+                   ),
+                   
+                   
+                   leafletOutput("map", width="100%", height="100%"),
+                   
+                   
+                   absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE,
+                                 draggable = TRUE, top = 60, left = "auto", right = 20, bottom = "auto",
+                                 width = 330, height = "auto",
+                                 
+                                 h2("Airbnb"),
+                                 
+                                 selectInput("color", "Color", vars)
+                   ),
+                   
+                   tags$div(id="cite")
+               )
+      ),
 
       tabPanel("Casa URL", icon = icon("home"), value = "home",
                useShinyjs(),

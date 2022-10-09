@@ -6,6 +6,11 @@ library(gapminder)
 library(shinyjs)
 library(readr)
 library(stringr)
+library(leaflet)
+library(RColorBrewer)
+library(scales)
+library(lattice)
+library(dplyr)
 
 df <- read_csv("Airbnb_Open_Data.csv")
 df <- df[1:25]
@@ -198,6 +203,77 @@ shinyServer(function(input, output, session) {
     
     observe({
       toggle(id = "inGraficaNumerico", condition = (input$inGrafica  == "Calidad Precio") | (input$inGrafica  == "Casas con mejores reviews"))
+    })
+    
+    ## Mapa ###########################################
+    
+    # Creando mapa
+    output$map <- renderLeaflet({
+      leaflet() %>%
+        addTiles() %>%
+        setView(lng = -73.9734393, lat = 40.6982127, zoom = 14)
+    })
+    
+    # limites
+    pricesInBounds <- reactive({
+      if (is.null(input$map_bounds))
+        return(df[FALSE,])
+      bounds <- input$map_bounds
+      latRng <- range(bounds$north, bounds$south)
+      lngRng <- range(bounds$east, bounds$west)
+      
+      subset(df,
+             lat >= latRng[1] & lat <= latRng[2] &
+               long>= lngRng[1] & long <= lngRng[2])
+    })
+    
+    
+    # seleccion de data para colores
+    observe({
+      colorBy <- input$color
+      
+      colorData <- df[[colorBy]]
+      pal <- colorBin("viridis", colorData, 7, pretty = FALSE)
+      
+      radius <- 30
+      
+      leafletProxy("map", data = df) %>%
+        clearShapes() %>%
+        addCircles(~long, ~lat, radius=radius, layerId=~id,
+                   stroke=FALSE, fillOpacity=0.4, fillColor=pal(colorData)) %>%
+        addLegend("bottomleft", pal=pal, values=colorData, title=colorBy,
+                  layerId="colorLegend")
+    })
+    
+    # Ventana emergente
+    showIdcodePopup <- function(id, lat, lng) {
+      selectedId <- df[df$id == id,]
+      content <- as.character(tagList(
+        tags$h4(as.character(selectedId$NAME)),
+        tags$strong(HTML(sprintf("%s, %s  ID: %s",
+                                 selectedId$`neighbourhood group`, selectedId$neighbourhood, selectedId$id
+        ))), tags$br(),
+        tags$strong(sprintf("Price: %s", dollar(selectedId$price))), tags$br(),
+        sprintf("Host name: %s", as.character(selectedId$`host name`)), tags$br(),
+        sprintf("Minimum nights: %s", as.integer(selectedId$`minimum nights`)), tags$br(),
+        sprintf("Number of reviews: %s", as.integer(selectedId$`number of reviews`)), tags$br(),
+        sprintf("Review rate number: %s", as.integer(selectedId$`review rate number`)), tags$br(),
+        sprintf("Availability 365: %s", as.integer(selectedId$`availability 365`)), tags$br(),
+        sprintf("House Rules: %s", as.character(selectedId$house_rules)), tags$br()
+      ))
+      leafletProxy("map") %>% addPopups(lng, lat, content, layerId = id)
+    }
+    
+    # Mostrar ventana emergente
+    observe({
+      leafletProxy("map") %>% clearPopups()
+      event <- input$map_shape_click
+      if (is.null(event))
+        return()
+      
+      isolate({
+        showIdcodePopup(event$id, event$lat, event$lng)
+      })
     })
 
 })
