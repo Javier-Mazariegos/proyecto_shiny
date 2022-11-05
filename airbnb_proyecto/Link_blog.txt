@@ -1,0 +1,1 @@
+Link al blog: https://shinydockeraws.blogspot.com/2022/11/shiny-app-en-docker-container-en-aws.html
